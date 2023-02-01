@@ -10,11 +10,14 @@ func hello() {
 
 //export sleep
 func sleep() {
-	println("sleep 1:", time.Now().Format("15:04:05.0"))
-	time.Sleep(time.Second * 3)
-	println("sleep 2:", time.Now().Format("15:04:05.0"))
+	for i := 1; i < 10; i++ {
+		println("sleep", i, ":", time.Now().Format("15:04:05.0"))
+		time.Sleep(time.Second)
+	}
 }
 
 func main() {
-	println("main:", time.Now().Format("15:04:05.0"))
+	println("main 1 :", time.Now().Format("15:04:05.0"))
+	sleep()
+	println("main 2 :", time.Now().Format("15:04:05.0"))
 }
