@@ -33,8 +33,13 @@ go-version:
 
 # Optimise tinygo output for size, see https://www.fermyon.com/blog/optimizing-tinygo-wasm
 tiny: go-version | $(O) ## Build for tinygo / wasm
+	tinygo version
 	tinygo build -o $(STATIC)/tinytest.wasm -target wasm -no-debug .
 	cp -f $$(tinygo env TINYGOROOT)/targets/wasm_exec.js $(STATIC)
+
+DECOMPILED = decompilation/$(shell uname -s)-$(shell uname -m)-tinytest.dcmp
+decompile: tiny
+	wasm-decompile docs/tinytest.wasm -o $(DECOMPILED)
 
 serve: tiny ## Build and serve on free port
 	servedir $(STATIC)
@@ -43,7 +48,7 @@ clean::
 	-rm -f $(STATIC)/tinytest.wasm
 	-rm -f $(STATIC)/wasm_exec.js
 
-.PHONY: build go-version install tidy tiny
+.PHONY: build decompile go-version install tidy tiny
 
 # --- Lint and tidy ------------------------------------------------------------
 
