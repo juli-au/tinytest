@@ -3,12 +3,47 @@
   <head>
     <meta charset="utf-8" />
     <title>tinytest</title>
+    <style>
+      button:hover {
+        background: yellow;
+      }
+      canvas {
+        border: 1px solid black;
+      }
+    </style>
   </head>
+
   <body>
-    <ul>
-      <li><a href="main.html">main</a></li>
-      <li><a href="hello.html">hello</a></li>
-      <li><a href="sleep.html">sleep</a></li>
-    </ul>
+    <button onClick="go.run(wasm);">Main</button>
+    <button onClick="wasm.exports.cancel();">Cancel</button>
+    <p>Output in dev console</p>
+    <canvas id="canvas"></canvas>
+
+    <script src="wasm_exec.js"></script>
+    <script>
+      let wasm
+      const canvasEl = document.getElementById('canvas')
+
+      function registerMousemove() {
+        canvasEl.onmousemove = (e) => wasm.exports.mousemove(e.x, e.y)
+      }
+
+      const go = new Go()
+      go.importObject.env = Object.assign(go.importObject.env, {
+        registerMousemove
+      })
+
+      async function init() {
+        const source = await fetch('tinytest.wasm')
+        const obj = await WebAssembly.instantiateStreaming(source, go.importObject)
+        wasm = obj.instance
+
+        const ctx = canvasEl.getContext('2d')
+        ctx.fillStyle = 'green'
+        ctx.fillRect(10, 10, 150, 100)
+      }
+
+      init()
+    </script>
   </body>
 </html>
