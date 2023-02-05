@@ -6,7 +6,7 @@ O = out
 # target for static HTML content, GitHub pages only supports <root> and docs/
 STATIC = docs
 
-all: lint tiny ## Build and lint
+all: lint tiny channels workers ## Build and lint
 	@if [ -e .git/rebase-merge ]; then git --no-pager log -1 --pretty='%h %s'; fi
 	@echo '$(COLOUR_GREEN)Success$(COLOUR_NORMAL)'
 
@@ -30,6 +30,14 @@ tiny: | $(O) ## Build for tinygo / wasm
 	tinygo build -o $(STATIC)/tinytest.wasm -target wasm -no-debug .
 	cp -f $$(tinygo env TINYGOROOT)/targets/wasm_exec.js $(STATIC)
 
+channels:
+	tinygo build -o $(STATIC)/channels/tinytest.wasm -target wasm -no-debug ./$(STATIC)/channels
+	cp -f $$(tinygo env TINYGOROOT)/targets/wasm_exec.js $(STATIC)/channels
+
+workers:
+	tinygo build -o $(STATIC)/workers/tinytest.wasm -target wasm -no-debug ./$(STATIC)/workers
+	cp -f $$(tinygo env TINYGOROOT)/targets/wasm_exec.js $(STATIC)/workers
+
 DECOMPILED = decompilation/$(shell uname -s)-$(shell uname -m)-tinytest.dcmp
 decompile: tiny
 	wasm-decompile docs/tinytest.wasm -o $(DECOMPILED)
@@ -41,7 +49,7 @@ clean::
 	-rm -f $(STATIC)/tinytest.wasm
 	-rm -f $(STATIC)/wasm_exec.js
 
-.PHONY: decompile serve tiny
+.PHONY: channels decompile serve tiny workers
 
 # --- Lint and tidy ------------------------------------------------------------
 

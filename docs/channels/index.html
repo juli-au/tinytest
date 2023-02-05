@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>tinytest - Channels</title>
+  </head>
+
+  <body>
+    <button id="run" disabled>Run</button>
+    <button id="cancel">Cancel</button>
+    <p>Output in dev console</p>
+
+    <script src="wasm_exec.js"></script>
+    <script>
+      let wasmModule
+      let go
+      async function init() {
+        WebAssembly.compileStreaming(fetch('tinytest.wasm'))
+          .then((obj) => (wasmModule = obj))
+          .catch((err) => console.error(err))
+        const button = document.getElementById('run')
+        button.onclick = run
+        button.disabled = false
+      }
+
+      async function run() {
+        go = new Go()
+        const wasmInst = await WebAssembly.instantiate(wasmModule, go.importObject)
+        go.run(wasmInst)
+      }
+      init()
+    </script>
+  </body>
+</html>
