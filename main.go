@@ -29,20 +29,6 @@ func main() {
 	eval.Run(evySource)
 }
 
-type sleepingYielder struct {
-	start time.Time
-	count int
-}
-
-func (y *sleepingYielder) Yield() {
-	y.count++
-	if y.count > 1000 && time.Since(y.start) > 100*time.Millisecond {
-		time.Sleep(time.Millisecond)
-		y.start = time.Now()
-		y.count = 0
-	}
-}
-
 // newSleepingYielder yields the CPU so that JavaScript/browser events
 // get a chance to be processed. Currently(Feb 2023) it seems that you
 // can only yield to JS by sleeping for at least 1ms but having that
@@ -52,6 +38,7 @@ func newSleepingYielder() func() {
 	count := 0
 	start := time.Now()
 	return func() {
+		count++
 		if count > 1000 && time.Since(start) > 100*time.Millisecond {
 			time.Sleep(time.Millisecond)
 			start = time.Now()
