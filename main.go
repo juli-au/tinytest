@@ -1,51 +1,61 @@
-//nolint:unused
 package main
 
 import (
 	"fmt"
 	"time"
+
+	"foxygo.at/evy/pkg/evaluator"
 )
 
-var cancelled = false
-var ch = make(chan bool)
+var evySource = `
+func fn
+  x := 5
+  for n := range [1]
+    print "n:" n "x:" x
+    x = x - 1
+  end
+end
+
+fn
+`
 
 func main() {
-	fmt.Println("go:main: started")
-
-	go pingpong()
-	busy()
-
-	fmt.Println("go:main: done")
+	rt := evaluator.Runtime{
+		Print: func(s string) { fmt.Print(s) },
+	}
+	builtins := evaluator.DefaultBuiltins(rt)
+	eval := evaluator.NewEvaluator(builtins)
+	eval.Yield = newSleepingYielder()
+	eval.Run(evySource)
 }
 
-func busy() {
-	fmt.Println("busy: started")
-	cancelled = false
+type sleepingYielder struct {
+	start time.Time
+	count int
+}
+
+func (y *sleepingYielder) Yield() {
+	y.count++
+	if y.count > 1000 && time.Since(y.start) > 100*time.Millisecond {
+		time.Sleep(time.Millisecond)
+		y.start = time.Now()
+		y.count = 0
+	}
+}
+
+// newSleepingYielder yields the CPU so that JavaScript/browser events
+// get a chance to be processed. Currently(Feb 2023) it seems that you
+// can only yield to JS by sleeping for at least 1ms but having that
+// delay is not ideal. Other methods of yielding can be explored by
+// implementing a different yield function.
+func newSleepingYielder() func() {
+	count := 0
 	start := time.Now()
-	for i := 1; i < 30000; i++ {
-		if time.Since(start) > time.Millisecond*25 {
-			fmt.Println("=========================== yield ===")
-			// ch <- true // doesn't work
-			// runtime.Gosched() // doesn't work.
-			time.Sleep(time.Millisecond) // works
+	return func() {
+		if count > 1000 && time.Since(start) > 100*time.Millisecond {
+			time.Sleep(time.Millisecond)
 			start = time.Now()
+			count = 0
 		}
-		if cancelled {
-			fmt.Println("go:busy: cancelled")
-			return
-		}
-		fmt.Printf("%s %d\n", "go:busy", i)
 	}
-	fmt.Println("go:busy: done")
-}
-
-func pingpong() {
-	for range ch {
-	}
-}
-
-//export cancel
-func cancel() {
-	fmt.Println("go: cancel")
-	cancelled = true
 }

@@ -7,7 +7,6 @@
 
   <body>
     <button onClick="main()">Main</button>
-    <button onClick="cancel()">Cancel</button>
     <p>Output in dev console</p>
 
     <script src="wasm_exec.js"></script>
@@ -18,11 +17,6 @@
       async function init() {
         const source = await fetch('tinytest.wasm')
         wasmModule = await WebAssembly.compileStreaming(source)
-      }
-
-      function cancel() {
-        console.log('js: cancel')
-        wasmInst && wasmInst.exports.cancel()
       }
 
       async function main() {
