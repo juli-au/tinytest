@@ -4,6 +4,14 @@ This project holds minimal examples to explore TinyGo wasm. The examples
 are served via GitHub pages and the [docs/](docs) directory on
 [tinytest.juli.au](https://tinytest.juli.au).
 
+It currently demonstrate a potential tinygo memory corruption issue:
+
+- Go to https://tinytest.juli.au/
+- Open browser developer tools
+- Click `Main`
+
+However, executing `go run main.go` does not show that issue.
+
 ## Development
 
 The tools used by this repository in the [bin/](bin) directory (e.g. go,
