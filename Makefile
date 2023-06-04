@@ -6,7 +6,7 @@ O = out
 # target for static HTML content, GitHub pages only supports <root> and docs/
 STATIC = docs
 
-all: lint tiny ## Build and lint
+all: tiny ## Build and lint
 	@if [ -e .git/rebase-merge ]; then git --no-pager log -1 --pretty='%h %s'; fi
 	@echo '$(COLOUR_GREEN)Success$(COLOUR_NORMAL)'
 
