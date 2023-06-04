@@ -13,23 +13,9 @@
       const go = new Go()
       let wasmModule, wasmInst
 
-      // jsStringParam receives a string from go. The string is written to
-      // wasmIst.exports.memory.buffer. Its starting pointer and length are
-      // passed as parameters to jsStringParam. jsStringParam extracts the
-      // relevant bytes and converts them back to string.
-      function jsStringParam(pointer, length) {
+      function helloworldCB(pointer, length) {
         const str = memToString(pointer, length)
-        console.log('js: jsStringParam', str)
-      }
-
-      // jsStringReturn returns a string to go. The string is written to
-      // wasmIst.exports.memory.buffer. Its starting pointer and length are
-      // are encoded into a single 64bit return value. The pointer are
-      // written to the high 32 bits, the length to the low 32 bits of the
-      // return value.
-      function jsStringReturnEncoded() {
-        const str = '💛'
-        return stringToMemAddr(str)
+        console.log('js: helloworldCB', str)
       }
 
       function memToString(ptr, len) {
@@ -38,29 +24,9 @@
         return s
       }
 
-      function stringToMemAddr(s) {
-        const ptrLen = stringToMem(s)
-        return ptrLenToBigInt(ptrLen)
-      }
-
-      function stringToMem(s) {
-        const bytes = new TextEncoder('utf8').encode(s)
-        const len = bytes.length
-        const ptr = wasmInst.exports.alloc(len)
-        const mem = new Uint8Array(wasmInst.exports.memory.buffer, ptr, len)
-        mem.set(new Uint8Array(bytes))
-        return { ptr, len }
-      }
-
-      function ptrLenToBigInt({ ptr, len }) {
-        const ptrLen = (BigInt(ptr) << 32n) | (BigInt(len) & 0x00000000ffffffffn)
-        const ptrLenNum = Number(ptrLen)
-        return ptrLenNum
-      }
-
       async function init() {
         const source = await fetch('tinytest.wasm')
-        const env = { jsStringParam, jsStringReturnEncoded }
+        const env = { helloworldCB }
         wasmModule = await WebAssembly.compileStreaming(source)
         go.importObject.env = Object.assign(go.importObject.env, env)
         wasmInst = await WebAssembly.instantiate(wasmModule, go.importObject)
@@ -68,9 +34,7 @@
         console.log('js: go.run')
         go.run(wasmInst)
         console.log('js: go.run done.')
-
-        const addr = stringToMem('🌼')
-        wasmInst.exports.goStringParam(addr.ptr, addr.len)
+        wasmInst.exports.helloworld()
       }
 
       init()
